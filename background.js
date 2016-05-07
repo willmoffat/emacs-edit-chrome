@@ -8,7 +8,7 @@
   // Set up context menu at install time.
   chrome.runtime.onInstalled.addListener(function() {
     chrome.contextMenus.create(
-        {id : extName, title : extName, contexts : [ "all" ]});
+        {id: extName, title: extName, contexts: ["all"]});
     chrome.commands.getAll(updateShortcut);
   });
 
@@ -26,40 +26,41 @@
   }
 
   function badge(text, title) {
-    chrome.browserAction.setBadgeText({text : text});
-    chrome.browserAction.setTitle({title : title || defaultTitle});
+    chrome.browserAction.setBadgeText({text: text});
+    chrome.browserAction.setTitle({title: title || defaultTitle});
   }
 
   function showOK() { badge('', ''); }
-  function showErr(err) { badge('err', err); }
+  function showErr(err) { badge('err', '' + err); }
 
   var nextId = 0;
 
   function onActivate(tab) {
     badge('...', 'Edit in progress');
     Promise.resolve({
-             attr : 'emacs_id',
-             id : nextId++,
-             err : 'Edit-In-Emacs-ERROR: ',
-             url : tab.url
+             attr: 'emacs_id',
+             id: nextId++,
+             err: 'Edit-In-Emacs-ERROR: ',
+             url: tab.url
            })
         .then(getText)
         .then(emacsEdit)
         .then(setText)
-        .then(showOK, showErr);
+        .then(showOK)
+        .catch(showErr);
   }
 
   // Doesn't resolve until emacs has sent response.
   function emacsEdit(session) {
     console.log('edit in emacs', session);
     var opts = {
-      method : 'post',
-      headers : {
-        "Content-type" : "text/plain",
-        "x-url" : session.url,
-        "x-id" : session.id // TODO(wdm) What is this for?
+      method: 'post',
+      headers: {
+        "Content-type": "text/plain",
+        "x-url": session.url,
+        "x-id": session.id  // TODO(wdm) What is this for?
       },
-      body : session.text
+      body: session.text
     };
     return fetch(EMACS_EDIT_SERVICE, opts)
         .then(function(r) {
@@ -91,14 +92,19 @@
 
     return new Promise(function(resolve, reject) {
       var cb = function(r) {
-        var result = r && r[0] || session.err + 'No response';
-        if (result.startsWith(session.err)) {
-          reject(result);
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError.message);
+        } else {
+          var result = r && r[0] || session.err + 'No response';
+          if (result.startsWith(session.err)) {
+            reject(result);
+          } else {
+            resolve(result);
+          }
         }
-        resolve(result);
       };
       // console.warn('exec code ', code);
-      chrome.tabs.executeScript({code : code}, cb);
+      chrome.tabs.executeScript({code: code}, cb);
     });
   }
 
@@ -119,7 +125,7 @@
       return session.err + sel + ' not found';
     }
     el.value = session.text;
-    el.dispatchEvent(new Event('input', {bubbles : true}));
+    el.dispatchEvent(new Event('input', {bubbles: true}));
     return 'OK';
   }
 })();
