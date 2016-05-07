@@ -11,7 +11,7 @@ Chrome extension for editing any textarea in Emacs.
 * You should see your text inserted back into the textarea.
 
 #### .emacs setup
-```
+```emacs
 (use-package edit-server
   :if window-system
   :ensure t
@@ -23,10 +23,12 @@ Chrome extension for editing any textarea in Emacs.
 
 ### Prior work
 
-Inspired by the awesome [Edit with Emacs](https://chrome.google.com/webstore/detail/edit-with-emacs/ljobjlafonikaiipfkggjbhkghgicgoh).
+Inspired by the awesome [Edit with Emacs](https://chrome.google.com/webstore/detail/edit-with-emacs/ljobjlafonikaiipfkggjbhkghgicgoh)
 
-* No fancy options, no UI additions current page, just minimal implementation.
-* Bubbles 'input' event, so can update mounted React components.
+Differences:
+* No fancy options, no UI is added to the current page.
+* Tiny code base.
+* Bubbles the `input` event which is required to support React components.
 * No problems with dynamically added textareas.
 
 ### Known bugs
