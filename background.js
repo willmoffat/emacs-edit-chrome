@@ -30,8 +30,14 @@
     chrome.browserAction.setTitle({title: title || defaultTitle});
   }
 
-  function showOK() { badge('', ''); }
-  function showErr(err) { badge('err', '' + err); }
+  function showOK(session) {
+    badge('', '');
+    return session;
+  }
+  function showErr(session) {
+    badge('err', '' + session.err);
+    return session;
+  }
 
   var nextId = 0;
 
@@ -40,7 +46,8 @@
     Promise.resolve({
              attr: 'emacs_id',
              id: nextId++,
-             err: 'Edit-In-Emacs-ERROR: ',
+             err: null,
+             tabId: tab.id,  // TODO(wdm) Use for separate badges?
              url: tab.url
            })
         .then(getText)
@@ -75,32 +82,26 @@
         });
   }
 
-  function getText(session) {
-    return execFn(session, remoteGetText)
-        .then(function(text) {
-          session.text = text;
-          return session;
-        });
-  }
+  function getText(session) { return execFn(session, remoteGetText); }
 
   function setText(session) { return execFn(session, remoteSetText); }
 
   // Convert fn to a string and execute it in the tab context.
   function execFn(session, fn) {
-    // TODO(wdm) Consider returning session
-    var code = '(' + fn.toString() + ')(' + JSON.stringify(session) + ');';
+    var code = 'JSON.stringify((' + fn.toString() + ')(' +
+               JSON.stringify(session) + '));';
 
     return new Promise(function(resolve, reject) {
       var cb = function(r) {
         if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError.message);
+          session.err = chrome.runtime.lastError.message;
         } else {
-          var result = r && r[0] || session.err + 'No response';
-          if (result.startsWith(session.err)) {
-            reject(result);
-          } else {
-            resolve(result);
-          }
+          session = JSON.parse(r[0]);  // Update from client.
+        }
+        if (session.err) {
+          reject(session);
+        } else {
+          resolve(session);
         }
       };
       // console.warn('exec code ', code);
@@ -112,9 +113,12 @@
     var el = document.activeElement;
     if (el && 'value' in el) {
       el.setAttribute(session.attr, session.id);
-      return el.value;
+      session.text = el.value;
+    } else {
+      session.text =
+          window.getSelection().toString() || document.body.textContent;
     }
-    return window.getSelection().toString() || document.body.textContent;
+    return session;
   }
 
   // Update text (and dispatch event - required for React apps)
@@ -122,10 +126,12 @@
     var sel = '[' + session.attr + '="' + session.id + '"]';
     var el = document.querySelector(sel);
     if (!el) {
-      return session.err + sel + ' not found';
+      session.err = 'Not found ' + sel;
+    } else {
+      el.value = session.text;
+      el.dispatchEvent(new Event('input', {bubbles: true}));
     }
-    el.value = session.text;
-    el.dispatchEvent(new Event('input', {bubbles: true}));
-    return 'OK';
+    return session;
   }
+
 })();
