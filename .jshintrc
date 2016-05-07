@@ -1,0 +1,18 @@
+{
+  "enforceall" : true,
+  "strict" : true,
+  "undef" : true,
+  "unused" : true,
+  "predef" : [
+    "chrome",
+
+    "fetch",
+    "Promise",
+    "Event",
+    "JSON",
+    "document",
+    "window",
+
+    "console"
+  ]
+}

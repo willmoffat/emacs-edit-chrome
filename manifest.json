@@ -1,0 +1,14 @@
+{
+  "name" : "Emacs Edit",
+  "description" : "Edit any textarea with Emacs",
+  "version" : "0.0.1",
+  "browser_action" : {},
+  "icons" : {"128" : "icons/emacs-128x128.png", "16" : "icons/emacs-16x16.png"},
+  "permissions" : [ "contextMenus", "activeTab", "http://127.0.0.1/edit/*" ],
+  "background" : {"persistent" : false, "scripts" : ["background.js"]},
+  "commands" : {
+    "_execute_browser_action" :
+        {"suggested_key" : {"default" : "Ctrl+Shift+E"}}
+  },
+  "manifest_version" : 2
+}
