@@ -127,16 +127,16 @@
 
   // Invoked on web page.
   function remoteInject(src) {
-    if (!document.getElementById('EditInEmacs')) {
+    if (!document.getElementById('EmacsEdit')) {
       var s = document.createElement('script');
       s.src = src;
-      s.id = 'EditInEmacs';
+      s.id = 'EmacsEdit';
       document.body.appendChild(s);
     }
   }
 
   function remoteGetText() {
-    var msgEl = document.getElementById('EditInEmacs');
+    var msgEl = document.getElementById('EmacsEdit');
     return {
       text: msgEl.dataset.text,
       editor: msgEl.dataset.editor,
@@ -145,7 +145,7 @@
   }
 
   function remoteDispatch(args) {
-    console.log('EditInEmacs: remoteDispatch', args);
+    console.log('EmacsEdit: remoteDispatch', args);
     var e = new CustomEvent(args.evt, {detail: JSON.stringify(args)});
     document.dispatchEvent(e);
   }

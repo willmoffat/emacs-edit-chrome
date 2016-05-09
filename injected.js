@@ -2,9 +2,9 @@
 
 (function() {
   "use strict";
-  var LOG = 'EditInEmacs: ';
+  var LOG = 'EmacsEdit: ';
 
-  var msgEl = document.getElementById('EditInEmacs');
+  var msgEl = document.getElementById('EmacsEdit');
 
   var emacsid = 0;  // Uninque id for each editor on page we are invoked on.
 
