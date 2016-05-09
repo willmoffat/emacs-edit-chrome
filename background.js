@@ -35,6 +35,20 @@
     chrome.browserAction.setTitle({title: title || defaultTitle});
   }
 
+  //////////////// Session-based promises. ////////////////
+
+  function onActivate(tab) {
+    badge('...', 'Edit in progress');
+    Promise.resolve({url: tab.url})
+        .then(injectHelper)
+        .then(sleep)
+        .then(getText)
+        .then(emacsEdit)
+        .then(setText)
+        .then(showOK)
+        .catch(showErr);
+  }
+
   function showOK(session) {
     badge('', '');
     return session;
@@ -56,21 +70,9 @@
     });
   }
 
-  function onActivate(tab) {
-    badge('...', 'Edit in progress');
-    Promise.resolve({url: tab.url})
-        .then(injectHelper)
-        .then(sleep)
-        .then(getText)
-        .then(emacsEdit)
-        .then(setText)
-        .then(showOK)
-        .catch(showErr);
-  }
-
   // Doesn't resolve until emacs has sent response.
   function emacsEdit(session) {
-    console.log('edit in emacs', session);
+    console.log('sending to emacs', session);
     var opts = {
       method: 'post',
       headers: {
@@ -111,6 +113,8 @@
     return execFn(remoteDispatch, session).then(function() { return session; });
   }
 
+  ////////////////////// Remote execution //////////////////////
+
   // Convert fn to a string and execute it in the tab context.
   function execFn(fn, args) {
     var code = 'JSON.stringify((' + fn.toString() + ')(' +
@@ -129,7 +133,7 @@
     });
   }
 
-  // Invoked on web page.
+  // Add injected.js once to a page.
   function remoteInject(src) {
     if (!document.getElementById('EmacsEdit')) {
       var s = document.createElement('script');
@@ -139,6 +143,7 @@
     }
   }
 
+  // Read the text to edit from the DOM.
   function remoteGetText() {
     var msgEl = document.getElementById('EmacsEdit');
     return {
@@ -148,8 +153,9 @@
     };
   }
 
+  // Dispatch an event to injected.js.
   function remoteDispatch(args) {
-    console.log('EmacsEdit: remoteDispatch', args);
+    console.log('remoteDispatch', args);
     var e = new CustomEvent(args.evt, {detail: JSON.stringify(args)});
     document.dispatchEvent(e);
   }
