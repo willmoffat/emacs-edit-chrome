@@ -34,7 +34,16 @@
       }
     },
 
-    // TODO(wdm) Contenteditable.
+    ContentEditable: {
+      get: function(el) {
+        el = el.closest('[contenteditable]');
+        if (!el) {
+          return null;
+        }
+        return {el: el, text: el.innerText};
+      },
+      set: function(el, text) { el.innerText = text; }
+    },
 
     Selection: {
       get: function() { return {text: window.getSelection().toString()}; },
