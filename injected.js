@@ -2,6 +2,7 @@
 
 (function() {
   "use strict";
+  var LOG = 'EditInEmacs: ';
 
   var msgEl = document.getElementById('EditInEmacs');
 
@@ -38,12 +39,13 @@
     Selection: {
       get: function() { return {text: window.getSelection().toString()}; },
       set: function(el, text) {
-        console.log('EditInEmacs: Ignoring update selection.', el, text);
+        console.log(LOG + 'Ignoring update selection.', el, text);
       }
     }
   };
 
   function getText() {
+    console.log(LOG + 'getText');
     msgEl.dataset.text = '';    // Text to edit.
     msgEl.dataset.editor = '';  // Type of editor.
     msgEl.dataset.id = '';      // emacsid of DOM node to update.
@@ -61,7 +63,7 @@
     }
 
     if (!r) {
-      console.warn('EditInEmacs: No text found to edit', el);
+      console.warn(LOG + 'No text found to edit', el);
       return;
     }
     el = r.el;  // DOM node for editor.
@@ -73,17 +75,18 @@
     msgEl.dataset.editor = editor;
     msgEl.dataset.id = el.dataset.emacsid;
 
-    console.log('EditInEmacs: Ready for edit', r);
+    console.log(LOG + 'Ready for edit', r);
   }
 
   function setText(e) {
+    console.log(LOG + 'setText');
     var args = JSON.parse(e.detail);
     var el;
     if (args.id) {
       var sel = '[data-emacsid="' + args.id + '"]';
       el = document.querySelector(sel);
       if (!el) {
-        console.error('EditInEmacs: Not found ' + sel);
+        console.error(LOG + 'Not found ' + sel);
         return;
       }
     }
@@ -94,5 +97,5 @@
   document.addEventListener('EmacsGetText', getText);
   document.addEventListener('EmacsSetText', setText);
 
-  console.log('EditInEmacs: Initialised.');
+  console.log(LOG + 'Initialised.');
 })();

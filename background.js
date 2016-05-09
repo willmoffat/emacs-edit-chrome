@@ -45,10 +45,18 @@
     return execFn(remoteInject, src).then(function() { return session; });
   }
 
+  // TODO(wdm) Poll for injected.js being ready.
+  function sleep(session) {
+    return new Promise(function(resolve) {
+      window.setTimeout(function() { resolve(session); }, 300);
+    });
+  }
+
   function onActivate(tab) {
     badge('...', 'Edit in progress');
     Promise.resolve({url: tab.url})
         .then(injectHelper)
+        .then(sleep)
         .then(getText)
         .then(emacsEdit)
         .then(setText)
@@ -137,6 +145,7 @@
   }
 
   function remoteDispatch(args) {
+    console.log('EditInEmacs: remoteDispatch', args);
     var e = new CustomEvent(args.evt, {detail: JSON.stringify(args)});
     document.dispatchEvent(e);
   }
