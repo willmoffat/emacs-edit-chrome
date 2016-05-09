@@ -2,6 +2,7 @@
   "use strict";
 
   var EMACS_EDIT_SERVICE = 'http://127.0.0.1:9292/edit';
+
   var extName = chrome.app.getDetails().name;
   var defaultTitle = extName;
 
@@ -39,12 +40,10 @@
     return session;
   }
 
-
   function injectHelper(session) {
     var src = chrome.extension.getURL('injected.js');
-    return execFn(src, remoteInject).then(function() { return session; });
+    return execFn(remoteInject, src).then(function() { return session; });
   }
-
 
   function onActivate(tab) {
     badge('...', 'Edit in progress');
@@ -83,33 +82,34 @@
   }
 
   function getText(session) {
-    return execFn({evt: 'EmacsGetText'}, remoteDispatch)
+    return execFn(remoteDispatch, {evt: 'EmacsGetText'})
         .then(function() {
-          return execFn(null, remoteGetText)
-              .then(function(text) {
-                session.text = text;
+          return execFn(remoteGetText)
+              .then(function(data) {
+                session.text = data.text;
+                session.id = data.id;
+                session.editor = data.editor;
                 return session;
               });
         });
   }
 
   function setText(session) {
-    var HACKid = 0;
-    var args = {evt: 'EmacsSetText', id: HACKid, text: session.text};
-    return execFn(args, remoteDispatch).then(function() { return session; });
+    session.evt = 'EmacsSetText';
+    return execFn(remoteDispatch, session).then(function() { return session; });
   }
 
-
   // Convert fn to a string and execute it in the tab context.
-  function execFn(args, fn) {
-    var code = '(' + fn.toString() + ')(' + JSON.stringify(args) + ');';
+  function execFn(fn, args) {
+    var code = 'JSON.stringify((' + fn.toString() + ')(' +
+               JSON.stringify(args) + '));';
 
     return new Promise(function(resolve, reject) {
       var cb = function(r) {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError.message);
         } else {
-          resolve(r && r[0]);
+          resolve(JSON.parse(r && r[0]));
         }
       };
       // console.warn('exec code ', code);
@@ -127,14 +127,18 @@
     }
   }
 
-  // HACK: only allows one active edit at a time.
   function remoteGetText() {
-    return document.getElementById('EditInEmacs').dataset.text;
+    var msgEl = document.getElementById('EditInEmacs');
+    return {
+      text: msgEl.dataset.text,
+      editor: msgEl.dataset.editor,
+      id: msgEl.dataset.id
+    };
   }
 
   function remoteDispatch(args) {
-    document.dispatchEvent(
-        new CustomEvent(args.evt, {detail: JSON.stringify(args)}));
+    var e = new CustomEvent(args.evt, {detail: JSON.stringify(args)});
+    document.dispatchEvent(e);
   }
 
 })();
