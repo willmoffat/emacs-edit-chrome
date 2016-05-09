@@ -8,6 +8,7 @@
 
   var emacsid = 0;  // Uninque id for each editor on page we are invoked on.
 
+  // Supported editors. Looked for in the DOM in the following order.
   var io = {
 
     CodeMirror: {
@@ -19,6 +20,17 @@
         return {el: el, text: el.CodeMirror.doc.getValue()};
       },
       set: function(el, text) { el.CodeMirror.doc.setValue(text); }
+    },
+
+    Ace: {
+      get: function(el) {
+        el = el.closest('.ace_editor');
+        if (!el) {
+          return null;
+        }
+        return {el: el, text: el.env.editor.getSession().getValue()};
+      },
+      set: function(el, text) { el.env.editor.getSession().setValue(text); }
     },
 
     TextArea: {
