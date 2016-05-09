@@ -9,6 +9,7 @@
     "fetch",
     "Promise",
     "Event",
+    "CustomEvent",
     "JSON",
     "document",
     "window",

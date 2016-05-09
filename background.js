@@ -39,17 +39,17 @@
     return session;
   }
 
-  var nextId = 0;
+
+  function injectHelper(session) {
+    var src = chrome.extension.getURL('injected.js');
+    return execFn(src, remoteInject).then(function() { return session; });
+  }
+
 
   function onActivate(tab) {
     badge('...', 'Edit in progress');
-    Promise.resolve({
-             attr: 'emacs_id',
-             id: nextId++,
-             err: null,
-             tabId: tab.id,  // TODO(wdm) Use for separate badges?
-             url: tab.url
-           })
+    Promise.resolve({url: tab.url})
+        .then(injectHelper)
         .then(getText)
         .then(emacsEdit)
         .then(setText)
@@ -82,26 +82,34 @@
         });
   }
 
-  function getText(session) { return execFn(session, remoteGetText); }
+  function getText(session) {
+    return execFn({evt: 'EmacsGetText'}, remoteDispatch)
+        .then(function() {
+          return execFn(null, remoteGetText)
+              .then(function(text) {
+                session.text = text;
+                return session;
+              });
+        });
+  }
 
-  function setText(session) { return execFn(session, remoteSetText); }
+  function setText(session) {
+    var HACKid = 0;
+    var args = {evt: 'EmacsSetText', id: HACKid, text: session.text};
+    return execFn(args, remoteDispatch).then(function() { return session; });
+  }
+
 
   // Convert fn to a string and execute it in the tab context.
-  function execFn(session, fn) {
-    var code = 'JSON.stringify((' + fn.toString() + ')(' +
-               JSON.stringify(session) + '));';
+  function execFn(args, fn) {
+    var code = '(' + fn.toString() + ')(' + JSON.stringify(args) + ');';
 
     return new Promise(function(resolve, reject) {
       var cb = function(r) {
         if (chrome.runtime.lastError) {
-          session.err = chrome.runtime.lastError.message;
+          reject(chrome.runtime.lastError.message);
         } else {
-          session = JSON.parse(r[0]);  // Update from client.
-        }
-        if (session.err) {
-          reject(session);
-        } else {
-          resolve(session);
+          resolve(r && r[0]);
         }
       };
       // console.warn('exec code ', code);
@@ -109,29 +117,24 @@
     });
   }
 
-  function remoteGetText(session) {
-    var el = document.activeElement;
-    if (el && 'value' in el) {
-      el.setAttribute(session.attr, session.id);
-      session.text = el.value;
-    } else {
-      session.text =
-          window.getSelection().toString() || document.body.textContent;
+  // Invoked on web page.
+  function remoteInject(src) {
+    if (!document.getElementById('EditInEmacs')) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.id = 'EditInEmacs';
+      document.body.appendChild(s);
     }
-    return session;
   }
 
-  // Update text (and dispatch event - required for React apps)
-  function remoteSetText(session) {
-    var sel = '[' + session.attr + '="' + session.id + '"]';
-    var el = document.querySelector(sel);
-    if (!el) {
-      session.err = 'Not found ' + sel;
-    } else {
-      el.value = session.text;
-      el.dispatchEvent(new Event('input', {bubbles: true}));
-    }
-    return session;
+  // HACK: only allows one active edit at a time.
+  function remoteGetText() {
+    return document.getElementById('EditInEmacs').dataset.text;
+  }
+
+  function remoteDispatch(args) {
+    document.dispatchEvent(
+        new CustomEvent(args.evt, {detail: JSON.stringify(args)}));
   }
 
 })();
