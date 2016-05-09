@@ -13,6 +13,10 @@
     chrome.commands.getAll(updateShortcut);
   });
 
+  chrome.tabs.onActivated.addListener(function() {
+    badge();  // Reset the badge.
+  });
+
   chrome.contextMenus.onClicked.addListener(function(_, tab) {
     onActivate(tab);
   });
@@ -27,7 +31,7 @@
   }
 
   function badge(text, title) {
-    chrome.browserAction.setBadgeText({text: text});
+    chrome.browserAction.setBadgeText({text: text || ''});
     chrome.browserAction.setTitle({title: title || defaultTitle});
   }
 
