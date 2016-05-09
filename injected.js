@@ -12,34 +12,20 @@
   var io = {
 
     CodeMirror: {
-      get: function(el) {
-        el = el.closest('.CodeMirror');
-        if (!el) {
-          return null;
-        }
-        return {el: el, text: el.CodeMirror.doc.getValue()};
-      },
+      find: '.CodeMirror',
+      get: function(el) { return el.CodeMirror.doc.getValue(); },
       set: function(el, text) { el.CodeMirror.doc.setValue(text); }
     },
 
     Ace: {
-      get: function(el) {
-        el = el.closest('.ace_editor');
-        if (!el) {
-          return null;
-        }
-        return {el: el, text: el.env.editor.getSession().getValue()};
-      },
+      find: '.ace_editor',
+      get: function(el) { return el.env.editor.getSession().getValue(); },
       set: function(el, text) { el.env.editor.getSession().setValue(text); }
     },
 
     TextArea: {
-      get: function(el) {
-        if (!('value' in el)) {
-          return null;
-        }
-        return {el: el, text: el.value};
-      },
+      find: 'textarea',
+      get: function(el) { return el.value; },
       set: function(el, text) {
         el.value = text;
         el.dispatchEvent(new Event('input', {bubbles: true}));
@@ -47,18 +33,14 @@
     },
 
     ContentEditable: {
-      get: function(el) {
-        el = el.closest('[contenteditable]');
-        if (!el) {
-          return null;
-        }
-        return {el: el, text: el.innerText};
-      },
+      find: '[contenteditable]',
+      get: function(el) { return el.innerText; },
       set: function(el, text) { el.innerText = text; }
     },
 
     Selection: {
-      get: function() { return {text: window.getSelection().toString()}; },
+      find: 'body',
+      get: function() { return window.getSelection().toString(); },
       set: function(el, text) {
         console.log(LOG + 'Ignoring update selection.', el, text);
       }
@@ -71,32 +53,35 @@
     msgEl.dataset.editor = '';  // Type of editor.
     msgEl.dataset.id = '';      // emacsid of DOM node to update.
 
-    var el = document.activeElement;
-    var r;
+
+    var editorEl;  // Top level editor node.
+    var text;
     var editor;
     for (editor in io) {
       if (io.hasOwnProperty(editor)) {
-        r = io[editor].get(el);
-        if (r) {
+        var sel = io[editor].find;
+        editorEl = document.activeElement.closest(sel);
+        if (editorEl) {
+          text = io[editor].get(editorEl);
           break;
         }
       }
     }
 
-    if (!r) {
-      console.warn(LOG + 'No text found to edit', el);
+    if (!text) {
+      console.warn(LOG + 'No text found to edit', document.activeElement);
       return;
     }
-    el = r.el;  // DOM node for editor.
-    if (!el.dataset.emacsid) {
-      emacsid++;
-      el.dataset.emacsid = emacsid;
-    }
-    msgEl.dataset.text = r.text;
-    msgEl.dataset.editor = editor;
-    msgEl.dataset.id = el.dataset.emacsid;
 
-    console.log(LOG + 'Ready for edit', r);
+    if (!editorEl.dataset.emacsid) {
+      emacsid++;
+      editorEl.dataset.emacsid = emacsid;
+    }
+    msgEl.dataset.text = text;
+    msgEl.dataset.editor = editor;
+    msgEl.dataset.id = editorEl.dataset.emacsid;
+
+    console.log(LOG + 'Ready to edit: "' + text + '".');
   }
 
   function setText(e) {
