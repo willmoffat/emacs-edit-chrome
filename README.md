@@ -4,10 +4,13 @@ Chrome extension for editing any textarea in Emacs.
 
 ### Highlights
 
-Supports:
-* contenteditable editors like GMail or this [markdown-editor](https://jbt.github.io/markdown-editor).
-* React based sites like the Wix editor.
+Supports multiple online editors:
 
+* [CodeMirror](https://codemirror.net/)
+* [Ace](https://ace.c9.io)
+* [TinyMCE](https://www.tinymce.com/)
+* [contenteditable](http://html5demos.com/contenteditable) editors: GMail, [markdown-editor](https://jbt.github.io/markdown-editor).
+* React based sites like the Wix editor.
 
 ### How to use
 
