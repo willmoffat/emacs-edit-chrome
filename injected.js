@@ -59,14 +59,18 @@
     msgEl.dataset.editor = '';  // Type of editor.
     msgEl.dataset.id = '';      // emacsid of DOM node to update.
 
-
+    var activeEl = document.activeElement;
+    if (activeEl === document.body) {
+      // html5demos.com/contenteditable breaks activeNode, so use selection.
+      activeEl = window.getSelection().focusNode.parentElement;
+    }
     var editorEl;  // Top level editor node.
     var text;
     var editor;
     for (editor in io) {
       if (io.hasOwnProperty(editor)) {
         var sel = io[editor].find;
-        editorEl = document.activeElement.closest(sel);
+        editorEl = activeEl.closest(sel);
         if (editorEl) {
           text = io[editor].get(editorEl);
           break;
@@ -75,7 +79,7 @@
     }
 
     if (!text) {
-      console.warn(LOG + 'No text found to edit', document.activeElement);
+      console.warn(LOG + 'No text found to edit', activeEl);
       return;
     }
 
