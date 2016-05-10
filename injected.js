@@ -23,6 +23,12 @@
       set: function(el, text) { el.env.editor.getSession().setValue(text); }
     },
 
+    TinyMCE: {
+      find: '.mce-tinymce',  // TODO(wdm) Lookup editor, don't assume active.
+      get: function() { return window.tinymce.activeEditor.getContent(); },
+      set: function(el, text) { window.tinymce.activeEditor.setContent(text); }
+    },
+
     TextArea: {
       find: 'textarea',
       get: function(el) { return el.value; },
