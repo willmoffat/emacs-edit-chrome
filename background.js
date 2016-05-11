@@ -4,7 +4,6 @@
   var EMACS_EDIT_SERVICE = 'http://127.0.0.1:9292/edit';
 
   var extName = chrome.app.getDetails().name;
-  var defaultTitle = extName;
 
   // Set up context menu at install time.
   chrome.runtime.onInstalled.addListener(function() {
@@ -13,49 +12,36 @@
     chrome.commands.getAll(updateShortcut);
   });
 
-  chrome.tabs.onActivated.addListener(function() {
-    badge();  // Reset the badge.
-  });
-
   chrome.contextMenus.onClicked.addListener(function(_, tab) {
     onActivate(tab);
   });
   chrome.browserAction.onClicked.addListener(onActivate);
 
   function updateShortcut(cmds) {
-    var shortcut = cmds && cmds[0] && cmds[0].shortcut;
-    if (shortcut) {
-      defaultTitle += ' - ' + shortcut;
-      badge('', '');
+    var t = extName;
+    var s = cmds && cmds[0] && cmds[0].shortcut;
+    if (s) {
+      t += ' - ' + s;
     }
-  }
-
-  function badge(text, title) {
-    chrome.browserAction.setBadgeText({text: text || ''});
-    chrome.browserAction.setTitle({title: title || defaultTitle});
+    chrome.browserAction.setTitle({title: t});
   }
 
   //////////////// Session-based promises. ////////////////
 
   function onActivate(tab) {
-    badge('...', 'Edit in progress');
     Promise.resolve({url: tab.url})
         .then(injectHelper)
         .then(sleep)
         .then(getText)
         .then(emacsEdit)
         .then(setText)
-        .then(showOK)
         .catch(showErr);
   }
 
-  function showOK(session) {
-    badge('', '');
-    return session;
-  }
   function showErr(session) {
-    badge('err', '' + session.err);
-    return session;
+    console.log('showErr', session);
+    session.type = 'err';
+    execFn(remoteDispatch, session);
   }
 
   function injectHelper(session) {
@@ -90,16 +76,24 @@
               return session;
             });
           } else {
-            throw new Error(r.statusText);
+            throw new Error(r.statusText);  // Never seen this happen.
           }
+        })
+        .catch(function(err) {
+          session.err = 'NoEmacs';
+          return Promise.reject(session);
         });
   }
 
   function getText(session) {
-    return execFn(remoteDispatch, {evt: 'EmacsGetText'})
+    return execFn(remoteDispatch, {type: 'get'})
         .then(function() {
           return execFn(remoteGetText)
               .then(function(data) {
+                if (!data.editor) {
+                  session.err = 'NoEditor';
+                  return Promise.reject(session);
+                }
                 session.text = data.text;
                 session.id = data.id;
                 session.editor = data.editor;
@@ -109,7 +103,7 @@
   }
 
   function setText(session) {
-    session.evt = 'EmacsSetText';
+    session.type = 'set';
     return execFn(remoteDispatch, session).then(function() { return session; });
   }
 
@@ -123,7 +117,7 @@
     return new Promise(function(resolve, reject) {
       var cb = function(r) {
         if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError.message);
+          reject({err: chrome.runtime.lastError.message});
         } else {
           resolve(JSON.parse(r && r[0]));
         }
@@ -155,9 +149,8 @@
 
   // Dispatch an event to injected.js.
   function remoteDispatch(args) {
-    console.log('remoteDispatch', args);
-    var e = new CustomEvent(args.evt, {detail: JSON.stringify(args)});
-    document.dispatchEvent(e);
+    document.dispatchEvent(
+        new CustomEvent('EmacsEvent', {detail: JSON.stringify(args)}));
   }
 
 })();

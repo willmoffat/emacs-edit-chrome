@@ -3,7 +3,8 @@
 (function() {
   "use strict";
   var LOG = 'EmacsEdit: ';
-
+  var HELP =
+      'https://github.com/willmoffat/emacs-edit-chrome/blob/master/README.md';
   var msgEl = document.getElementById('EmacsEdit');
 
   var emacsid = 0;  // Uninque id for each editor on page we are invoked on.
@@ -53,33 +54,70 @@
     }
   };
 
-  function getText() {
-    console.log(LOG + 'getText');
+  function initErr() {
+    var el = document.createElement('div');
+    document.body.addEventListener('click', function() { el.remove(); });
+    el.style = [
+      'position:fixed; top:5px; right:5px; padding:1em;',
+      'font-family: Verdana, sans-serif; cursor:pointer;',
+      'color: red; background-color: #FFBABA; border:1px solid red;'
+    ].join(' ');
+    return el;
+  }
+
+  function getActiveEl() {
+    var el = document.activeElement;
+    if (el && el !== document.body) {
+      return el;
+    }
+
+    // html5demos.com/contenteditable breaks activeNode, so use selection.
+    var s = window.getSelection();
+    if (s && s.focusNode) {
+      return s.focusNode.parentElement;
+    }
+    return null;
+  }
+
+  var handlers = {};
+
+  var errEl = initErr();
+  handlers.err = function showError(args) {
+    errEl.remove();
+    if (args.err === 'NoEditor') {
+      errEl.textContent = 'No active editor on this page. Click on a textarea.';
+    } else if (args.err === 'NoEmacs') {
+      errEl.innerHTML =
+          'Emacs not found. <a target="_blank" href="' + HELP + '">Help</a>.';
+    } else {
+      errEl.textContent = args.err;
+    }
+    document.body.appendChild(errEl);
+  };
+
+  handlers.get = function getText() {
     msgEl.dataset.text = '';    // Text to edit.
     msgEl.dataset.editor = '';  // Type of editor.
     msgEl.dataset.id = '';      // emacsid of DOM node to update.
 
-    var activeEl = document.activeElement;
-    if (activeEl === document.body) {
-      // html5demos.com/contenteditable breaks activeNode, so use selection.
-      activeEl = window.getSelection().focusNode.parentElement;
-    }
+    var activeEl = getActiveEl();
     var editorEl;  // Top level editor node.
     var text;
     var editor;
-    for (editor in io) {
-      if (io.hasOwnProperty(editor)) {
-        var sel = io[editor].find;
-        editorEl = activeEl.closest(sel);
-        if (editorEl) {
-          text = io[editor].get(editorEl);
-          break;
+    if (activeEl) {
+      for (editor in io) {
+        if (io.hasOwnProperty(editor)) {
+          var sel = io[editor].find;
+          editorEl = activeEl.closest(sel);
+          if (editorEl) {
+            text = io[editor].get(editorEl);
+            break;
+          }
         }
       }
     }
 
-    if (!text) {
-      console.warn(LOG + 'No text found to edit', activeEl);
+    if (!editorEl) {
       return;
     }
 
@@ -90,13 +128,9 @@
     msgEl.dataset.text = text;
     msgEl.dataset.editor = editor;
     msgEl.dataset.id = editorEl.dataset.emacsid;
+  };
 
-    console.log(LOG + 'Ready to edit: "' + text + '".');
-  }
-
-  function setText(e) {
-    console.log(LOG + 'setText');
-    var args = JSON.parse(e.detail);
+  handlers.set = function setText(args) {
     var el;
     if (args.id) {
       var sel = '[data-emacsid="' + args.id + '"]';
@@ -108,10 +142,13 @@
     }
     // Update the text.
     io[args.editor].set(el, args.text);
-  }
+  };
 
-  document.addEventListener('EmacsGetText', getText);
-  document.addEventListener('EmacsSetText', setText);
+  document.addEventListener('EmacsEvent', function(e) {
+    var args = JSON.parse(e.detail);
+    console.log(LOG + 'Handle: ', args);
+    handlers[args.type](args);
+  });
 
   console.log(LOG + 'Initialised.');
 })();
