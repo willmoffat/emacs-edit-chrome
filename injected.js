@@ -3,8 +3,6 @@
 (function() {
   "use strict";
   var LOG = 'EmacsEdit: ';
-  var HELP =
-      'https://github.com/willmoffat/emacs-edit-chrome/blob/master/README.md';
   var msgEl = document.getElementById('EmacsEdit');
 
   var emacsid = 0;  // Uninque id for each editor on page we are invoked on.
@@ -54,17 +52,6 @@
     }
   };
 
-  function initErr() {
-    var el = document.createElement('div');
-    document.body.addEventListener('click', function() { el.remove(); });
-    el.style = [
-      'position:fixed; top:5px; right:5px; padding:1em;',
-      'font-family: Verdana, sans-serif; cursor:pointer;',
-      'color: red; background-color: #FFBABA; border:1px solid red;'
-    ].join(' ');
-    return el;
-  }
-
   function getActiveEl() {
     var el = document.activeElement;
     if (el && el !== document.body) {
@@ -79,20 +66,22 @@
     return null;
   }
 
+  var $e;  // Error element.
+  function hideErr() { return $e && $e.remove(); }
+  function showErr(src) {
+    if (!$e) {
+      $e = document.createElement('iframe');
+      window.addEventListener('click', hideErr);
+      $e.style = 'position:fixed; top:0; right:1em; z-index:999999; border:0;';
+    }
+    document.body.appendChild($e);
+    $e.src = src;
+  }
+
   var handlers = {};
 
-  var errEl = initErr();
   handlers.err = function showError(args) {
-    errEl.remove();
-    if (args.err === 'NoEditor') {
-      errEl.textContent = 'No active editor on this page. Click on a textarea.';
-    } else if (args.err === 'NoEmacs') {
-      errEl.innerHTML =
-          'Emacs not found. <a target="_blank" href="' + HELP + '">Help</a>.';
-    } else {
-      errEl.textContent = args.err;
-    }
-    document.body.appendChild(errEl);
+    showErr(args.html + '#' + args.err);
   };
 
   handlers.get = function getText() {
@@ -147,6 +136,7 @@
   document.addEventListener('EmacsEvent', function(e) {
     var args = JSON.parse(e.detail);
     console.log(LOG + 'Handle: ', args);
+    hideErr();
     handlers[args.type](args);
   });
 

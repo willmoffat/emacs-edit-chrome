@@ -10,6 +10,6 @@
     "_execute_browser_action" :
         {"suggested_key" : {"default" : "Ctrl+Shift+E"}}
   },
-  "web_accessible_resources" : ["injected.js"],
+  "web_accessible_resources" : ["injected.js", "error.html"],
   "manifest_version" : 2
 }

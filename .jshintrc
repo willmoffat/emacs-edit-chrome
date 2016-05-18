@@ -13,6 +13,7 @@
     "JSON",
     "document",
     "window",
+    "setTimeout",
 
     "console"
   ]

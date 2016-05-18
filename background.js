@@ -40,6 +40,7 @@
 
   function showErr(session) {
     console.log('showErr', session);
+    session.html = chrome.extension.getURL('error.html');
     session.type = 'err';
     execFn(remoteDispatch, session);
   }

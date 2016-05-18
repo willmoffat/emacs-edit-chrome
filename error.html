@@ -1,0 +1,52 @@
+<!doctype html>
+<title>Emacs Edit - Error</title>
+<style>
+ * { margin:0; padding:0; border:0;}
+ body { padding-right:10px; }
+ .container {
+     background:white;
+     box-shadow: rgba(0,0,0,0.3) 4px 4px 10px 0px;
+     border:#CFCFCF solid 2px; border-radius:4px;
+ }
+
+ /* Only show the relevant error message */
+ section { padding:0.5em; display:none; }
+ section:target { display:block; }
+
+ h1 {
+     background:#444444;
+     color: #B2AFAD;
+     font-size:100%;
+     text-align: center;
+     padding: 3px;
+ }
+ h2 {
+     font-size: 100%;
+     padding-bottom:0.5em;
+ }
+ a {
+     display:block;
+     padding:0.5em 0;
+     width:100%;
+     text-align:center;
+ }
+</style>
+
+<div class="container">
+    <h1>Emacs Edit</h1>
+
+    <section id="NoEmacs">
+        <h2>Connection Error</h2>
+        Could not connect to Emacs.
+    </section>
+
+    <section id="NoEditor">
+        <h2>No editor found</h2>
+        No active editor found on page.
+        Click on the text you want to edit.
+    </section>
+
+    <a href="https://github.com/willmoffat/emacs-edit-chrome/blob/master/README.md"
+       target="_blank">Help</a>
+
+</div>
