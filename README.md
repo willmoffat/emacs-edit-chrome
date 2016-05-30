@@ -6,7 +6,7 @@ Chrome extension for editing any textarea in Emacs.
 
 Supports editing any `<textarea>` as well as multiple online editors:
 
-* [CodeMirror](https://codemirror.net/)
+* [CodeMirror](https://codemirror.net/) - including the ancient version used by [Google Apps Script](https://script.google.com/intro).
 * [Ace](https://ace.c9.io)
 * [TinyMCE](https://www.tinymce.com/)
 * [contenteditable](http://html5demos.com/contenteditable) editors: GMail, [markdown-editor](https://jbt.github.io/markdown-editor).

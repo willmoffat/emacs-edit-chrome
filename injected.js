@@ -12,44 +12,71 @@
 
     CodeMirror: {
       find: '.CodeMirror',
-      get: function(el) { return el.CodeMirror.doc.getValue(); },
-      set: function(el, text) { el.CodeMirror.doc.setValue(text); }
+      api: function(el) {
+        // Support old API without doc.
+        var doc = el.CodeMirror && (el.CodeMirror.doc || el.CodeMirror);
+        return {
+          get: function() { return doc.getValue(); },
+          set: function(text) { doc.setValue(text); }
+        };
+      }
     },
 
     Ace: {
       find: '.ace_editor',
-      get: function(el) { return el.env.editor.getSession().getValue(); },
-      set: function(el, text) { el.env.editor.getSession().setValue(text); }
+      api: function(el) {
+        var session = el.env.editor.getSession();
+        return {
+          get: function() { return session.getValue(); },
+          set: function(text) { session.setValue(text); }
+        };
+      }
     },
 
     TinyMCE: {
-      find: '.mce-tinymce',  // TODO(wdm) Lookup editor, don't assume active.
-      get: function() { return window.tinymce.activeEditor.getContent(); },
-      set: function(el, text) { window.tinymce.activeEditor.setContent(text); }
+      find: '.mce-tinymce',
+      api: function() {
+        var ed = window.tinymce.activeEditor;  // TODO(wdm) Lookup editor.
+        return {
+          get: function() { return ed.getContent(); },
+          set: function(text) { ed.setContent(text); }
+        };
+      }
     },
 
     TextArea: {
       find: 'textarea',
-      get: function(el) { return el.value; },
-      set: function(el, text) {
-        el.value = text;
-        el.dispatchEvent(new Event('input', {bubbles: true}));
+      api: function(el) {
+        return {
+          get: function() { return el.value; },
+          set: function(text) {
+            el.value = text;
+            el.dispatchEvent(new Event('input', {bubbles: true}));
+          }
+        };
       }
     },
 
     ContentEditable: {
       find: '[contenteditable]',
-      get: function(el) { return el.innerText; },
-      set: function(el, text) { el.innerText = text; }
+      api: function(el) {
+        return {
+          get: function() { return el.innerText; },
+          set: function(text) { el.innerText = text; }
+        };
+      }
     },
 
     Selection: {
       find: 'body',
-      get: function() { return window.getSelection().toString(); },
-      set: function(el, text) {
-        console.log(LOG + 'Ignoring update selection.', el, text);
+      api: function(el) {
+        return {
+          get: function() { return window.getSelection().toString(); },
+          set: function(text) { console.log(LOG + 'Ignoring', el, text); }
+        };
       }
     }
+
   };
 
   function getActiveEl() {
@@ -99,7 +126,7 @@
           var sel = io[editor].find;
           editorEl = activeEl.closest(sel);
           if (editorEl) {
-            text = io[editor].get(editorEl);
+            text = io[editor].api(editorEl).get();
             break;
           }
         }
@@ -130,7 +157,7 @@
       }
     }
     // Update the text.
-    io[args.editor].set(el, args.text);
+    io[args.editor].api(el).set(args.text);
   };
 
   document.addEventListener('EmacsEvent', function(e) {
