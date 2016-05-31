@@ -1,5 +1,6 @@
 {
   "enforceall" : true,
+  "esversion": 5,
   "strict" : true,
   "undef" : true,
   "unused" : true,
