@@ -42,7 +42,7 @@
     console.log('showErr', session);
     session.html = chrome.extension.getURL('error.html');
     session.type = 'err';
-    execFn(remoteDispatch, session);
+    execFn(remoteDispatch, session).catch(function() { alert(session.err); });
   }
 
   function injectHelper(session) {

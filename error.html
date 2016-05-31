@@ -1,17 +1,26 @@
 <!doctype html>
 <title>Emacs Edit - Error</title>
 <style>
+
+ @keyframes highlight {
+     /* Allow 0.1% of time to scroll to relevant error msg. */
+     0% { visibility: hidden; } 0.1% { height: 0em; } 100% { }
+ }
+
  * { margin:0; padding:0; border:0;}
  body { padding-right:10px; }
  .container {
      background:white;
      box-shadow: rgba(0,0,0,0.3) 4px 4px 10px 0px;
      border:#CFCFCF solid 2px; border-radius:4px;
+     animation: 1s highlight;
+     height: 11em;
+     overflow: hidden;
  }
 
  /* Only show the relevant error message */
- section { padding:0.5em; display:none; }
- section:target { display:block; }
+ section        { display: none; }
+ section:target { display: block; }
 
  h1 {
      background:#444444;
@@ -22,14 +31,9 @@
  }
  h2 {
      font-size: 100%;
-     padding-bottom:0.5em;
+     padding-bottom: 1em;
  }
- a {
-     display:block;
-     padding:0.5em 0;
-     width:100%;
-     text-align:center;
- }
+ section,a { padding: 1em; }
 </style>
 
 <div class="container">
