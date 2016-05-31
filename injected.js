@@ -126,6 +126,7 @@
           var sel = io[editor].find;
           editorEl = activeEl.closest(sel);
           if (editorEl) {
+            editorEl.style.backgroundColor = 'gold';
             text = io[editor].api(editorEl).get();
             break;
           }
@@ -158,6 +159,8 @@
     }
     // Update the text.
     io[args.editor].api(el).set(args.text);
+    el.style.transition = 'background-color 2s';
+    el.style.backgroundColor = '';
   };
 
   document.addEventListener('EmacsEvent', function(e) {
