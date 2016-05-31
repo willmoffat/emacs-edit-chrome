@@ -1,15 +1,20 @@
 # emacs-edit-chrome
 
-Chrome extension for editing any textarea in Emacs.
+> No more pain of editing text in your browser - use Emacs!
+
+This Chrome extension lets you grab text from Chrome and send it to Eamcs for editing.
 
 ### Highlights
 
-Supports editing any `<textarea>` as well as multiple online editors:
+Edit text in `<textarea>` and `<input>` elements: [Demo1](http://www.echoecho.com/htmlforms08.htm), [Demo2](https://robertnyman.com/html5/forms/input-types.html)
+
+as well as multiple browser-based editors:
 
 * [CodeMirror](https://codemirror.net/) - including the ancient version used by [Google Apps Script](https://script.google.com/intro).
 * [Ace](https://ace.c9.io)
 * [TinyMCE](https://www.tinymce.com/)
-* [contenteditable](http://html5demos.com/contenteditable) editors: GMail, [markdown-editor](https://jbt.github.io/markdown-editor).
+* [contenteditable](http://html5demos.com/contenteditable) editors like:
+[GMail](https://mail.google.com/mail/?view=cm&fs=1&tf=1) and jbt's [markdown-editor](https://jbt.github.io/markdown-editor).
 * React-based editors such as the Wix website editor.
 
 ### How to use

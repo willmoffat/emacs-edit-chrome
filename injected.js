@@ -45,7 +45,7 @@
     },
 
     TextArea: {
-      find: 'textarea',
+      find: 'textarea,input',
       api: function(el) {
         return {
           get: function() { return el.value; },
