@@ -57,9 +57,12 @@
     });
   }
 
+  const sendPing = () => execFn(remoteDispatch, {type:'ping'})
+
   // Doesn't resolve until emacs has sent response.
   function emacsEdit(session) {
     console.log('sending to emacs', session);
+    const pinger = setInterval(sendPing, 10*1000)
     var opts = {
       method: 'post',
       headers: {
@@ -83,7 +86,7 @@
         .catch(function(err) {
           session.err = 'NoEmacs';
           return Promise.reject(session);
-        });
+        }).finally( () => clearInterval(pinger) )
   }
 
   function getText(session) {

@@ -163,6 +163,8 @@
     el.style.backgroundColor = '';
   };
 
+  handlers.ping = () => "ignore"
+
   document.addEventListener('EmacsEvent', function(e) {
     var args = JSON.parse(e.detail);
     console.log(LOG + 'Handle: ', args);
